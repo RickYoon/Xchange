@@ -95,7 +95,7 @@ Under the following terms:
 For more details, see the full license text at:
 https://creativecommons.org/licenses/by-nc-sa/4.0/
 
-Copyright (c) 2024 EDUBridge. All rights reserved.
+Copyright (c) 2025 Xchange. All rights reserved.
 
 ## Architecture
 
