@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: CC BY-NC-SA 4.0
 pragma solidity ^0.8.20;
 
 interface ILayerZeroEndpoint {
@@ -8,9 +8,9 @@ interface ILayerZeroEndpoint {
     }
 
     function send(
-        uint32 _dstEid,
+        uint16 _dstChainId,
         bytes calldata _destination,
-        bytes calldata _message,
+        bytes calldata _payload,
         address payable _refundAddress,
         address _zroPaymentAddress,
         bytes calldata _adapterParams
@@ -43,4 +43,12 @@ interface ILayerZeroEndpoint {
     function setReceiveVersion(address _receiver, uint16 _version) external;
 
     function forceResumeReceive(uint32 _srcEid, bytes calldata _path) external;
+
+    function estimateFees(
+        uint16 _dstChainId,
+        address _userApplication,
+        bytes calldata _payload,
+        bool _payInZRO,
+        bytes calldata _adapterParams
+    ) external view returns (uint256 nativeFee, uint256 zroFee);
 }

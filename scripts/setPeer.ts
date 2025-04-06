@@ -1,41 +1,71 @@
-import { ethers } from "hardhat";
+import { ethers, network } from "hardhat";
 
 async function main() {
   const [deployer] = await ethers.getSigners();
-  console.log("Setting peers with the account:", deployer.address);
-
-  const network = await ethers.provider.getNetwork();
-  const chainId = Number(network.chainId);
-  
+  console.log("Setting peers with account:", deployer.address);
   console.log("Network:", network.name);
-  console.log("Chain ID:", chainId);
 
-  // 컨트랙트 주소
-  const BSC_ROUTER = "0x55B8Ec10146f1f1BaC176769a4B5a6803DeF6661";
-  const BSC_RECEIVER = "0x16B0c563960Bc793052976CAeB8cF6d685E4BF23";
-  const SEPOLIA_ROUTER = "0x03A6b82C1A75ebBF5e4a9c113df92Bff77Ef3845";
-  const SEPOLIA_RECEIVER = "0x8015fe71f24E335C9463E70872F50a35C0984502";
+  // Contract addresses
+  const BSC_ADDRESSES = {
+    router: "0xD0404B0F6BaB1a6553F06Ce7D12831cA0655C10B",
+    receiver: "0x414089509d9162ae76BE5a197153F36A60c01bb1"
+  };
 
-  // Chain IDs (LayerZero v2)
-  const BSC_CHAIN_ID = 40102;     // BSC Testnet
-  const SEPOLIA_CHAIN_ID = 40161; // Sepolia
+  const SEPOLIA_ADDRESSES = {
+    router: "0xD769e3e05F6c527BA6a955C5dFC0EF400dE84568",
+    receiver: "0x3b403B358034B0055A94C3C72a55c9870679B188"
+  };
 
-  let router;
-  if (chainId === 97) { // BSC Testnet
-    console.log("Setting peer on BSC Router...");
-    router = await ethers.getContractAt("EDUSwapRouter", BSC_ROUTER);
-    await router.setPeer(SEPOLIA_CHAIN_ID, ethers.zeroPadValue(SEPOLIA_RECEIVER, 32));
+  // LayerZero Chain IDs
+  const BSC_CHAIN_ID = 40102;
+  const SEPOLIA_CHAIN_ID = 40161;
+
+  if (network.name === "bscTestnet") {
+    // BSC Router -> Sepolia Receiver
+    console.log("\nSetting peer on BSC Router...");
+    console.log("Sepolia EID:", SEPOLIA_CHAIN_ID);
+    console.log("Sepolia Receiver:", SEPOLIA_ADDRESSES.receiver);
+
+    const bscRouter = await ethers.getContractAt("EDUSwapRouter", BSC_ADDRESSES.router, deployer);
+    let tx = await bscRouter.setPeer(SEPOLIA_CHAIN_ID, ethers.zeroPadValue(SEPOLIA_ADDRESSES.receiver, 32));
+    await tx.wait();
     console.log("BSC Router peer set to Sepolia Receiver");
-  } else if (chainId === 11155111) { // Sepolia
-    console.log("Setting peer on Sepolia Router...");
-    router = await ethers.getContractAt("EDUSwapRouter", SEPOLIA_ROUTER);
-    await router.setPeer(BSC_CHAIN_ID, ethers.zeroPadValue(BSC_RECEIVER, 32));
-    console.log("Sepolia Router peer set to BSC Receiver");
-  } else {
-    throw new Error("Unsupported network");
-  }
 
-  console.log("Peer setting completed!");
+    // BSC Receiver -> Sepolia Router
+    console.log("\nSetting peer on BSC Receiver...");
+    console.log("Sepolia EID:", SEPOLIA_CHAIN_ID);
+    console.log("Sepolia Router:", SEPOLIA_ADDRESSES.router);
+
+    const bscReceiver = await ethers.getContractAt("EDUSwapReceiver", BSC_ADDRESSES.receiver, deployer);
+    tx = await bscReceiver.setPeer(SEPOLIA_CHAIN_ID, ethers.zeroPadValue(SEPOLIA_ADDRESSES.router, 32));
+    await tx.wait();
+    console.log("BSC Receiver peer set to Sepolia Router");
+
+  } else if (network.name === "sepolia") {
+    // Sepolia Router -> BSC Receiver
+    console.log("\nSetting peer on Sepolia Router...");
+    console.log("BSC EID:", BSC_CHAIN_ID);
+    console.log("BSC Receiver:", BSC_ADDRESSES.receiver);
+
+    const sepoliaRouter = await ethers.getContractAt("EDUSwapRouter", SEPOLIA_ADDRESSES.router, deployer);
+    let tx = await sepoliaRouter.setPeer(BSC_CHAIN_ID, ethers.zeroPadValue(BSC_ADDRESSES.receiver, 32));
+    await tx.wait();
+    console.log("Sepolia Router peer set to BSC Receiver");
+
+    // Sepolia Receiver -> BSC Router
+    console.log("\nSetting peer on Sepolia Receiver...");
+    console.log("BSC EID:", BSC_CHAIN_ID);
+    console.log("BSC Router:", BSC_ADDRESSES.router);
+
+    const sepoliaReceiver = await ethers.getContractAt("EDUSwapReceiver", SEPOLIA_ADDRESSES.receiver, deployer);
+    tx = await sepoliaReceiver.setPeer(BSC_CHAIN_ID, ethers.zeroPadValue(BSC_ADDRESSES.router, 32));
+    await tx.wait();
+    console.log("Sepolia Receiver peer set to BSC Router");
+
+  } else {
+    console.error("Unsupported network");
+    process.exit(1);
+  }
 }
 
 main().catch((error) => {

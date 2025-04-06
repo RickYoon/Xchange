@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: CC BY-NC-SA 4.0
 pragma solidity ^0.8.20;
 
 import "../interfaces/ILayerZeroEndpoint.sol";
@@ -11,15 +11,24 @@ contract MockLZEndpoint is ILayerZeroEndpoint {
     mapping(address => uint256) public lzTokenFees;
 
     function send(
-        uint32 _dstEid,
+        uint16 _dstChainId,
         bytes calldata _destination,
-        bytes calldata _message,
+        bytes calldata _payload,
         address payable _refundAddress,
         address _zroPaymentAddress,
         bytes calldata _adapterParams
-    ) external payable {
-        // 실제 메시지 전송 없이 수수료만 기록
-        nativeFees[msg.sender] += msg.value;
+    ) external payable override {
+        // Mock implementation
+    }
+
+    function estimateFees(
+        uint16 _dstChainId,
+        address _userApplication,
+        bytes calldata _payload,
+        bool _payInZRO,
+        bytes calldata _adapterParams
+    ) external pure override returns (uint256 nativeFee, uint256 zroFee) {
+        return (0.01 ether, 0);
     }
 
     function quote(

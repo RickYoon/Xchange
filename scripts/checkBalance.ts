@@ -2,7 +2,7 @@ import { ethers, network } from "hardhat";
 
 async function main() {
   const [deployer] = await ethers.getSigners();
-  console.log("Adding liquidity with account:", deployer.address);
+  console.log("Checking balances with account:", deployer.address);
   console.log("Network:", network.name);
 
   // Contract addresses
@@ -13,7 +13,7 @@ async function main() {
 
   // Get contracts
   const token = await ethers.getContractAt(
-    "EDUToken",
+    "MockEDUToken",
     network.name === "bscTestnet" ? BSC_TOKEN : SEPOLIA_TOKEN,
     deployer
   );
@@ -24,24 +24,20 @@ async function main() {
     deployer
   );
 
-  // Amount to add as liquidity (1000 EDU)
-  const amount = ethers.parseEther("1000");
-
-  // First approve tokens
-  console.log("\nApproving tokens...");
-  const approveTx = await token.approve(pool.target, amount);
-  await approveTx.wait();
-  console.log("Tokens approved");
-
-  // Add liquidity
-  console.log("\nAdding liquidity...");
-  const tx = await pool.depositLiquidity(amount);
-  await tx.wait();
-  console.log("Liquidity added successfully");
-
-  // Check new balance
+  // Check balances
   const poolBalance = await token.balanceOf(pool.target);
-  console.log("\nNew pool balance:", ethers.formatEther(poolBalance), "EDU");
+  console.log("\nPool balance:", ethers.formatEther(poolBalance), "EDU");
+
+  const deployerBalance = await token.balanceOf(deployer.address);
+  console.log("Deployer balance:", ethers.formatEther(deployerBalance), "EDU");
+
+  // Check if deployer has approved pool
+  const allowance = await token.allowance(deployer.address, pool.target);
+  console.log("Pool allowance:", ethers.formatEther(allowance), "EDU");
+
+  // Check receiver address
+  const receiver = await pool.receiver();
+  console.log("Current receiver address:", receiver);
 }
 
 main().catch((error) => {

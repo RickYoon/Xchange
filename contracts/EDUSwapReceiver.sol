@@ -50,9 +50,11 @@ contract EDUSwapReceiver is Ownable, OApp {
     ) internal override {
         require(peers[_origin.srcEid] == _origin.sender, "Invalid source peer");
 
-        // 메시지 디코딩
-        (bytes32 to, uint256 amount) = abi.decode(_payload, (bytes32, uint256));
-        address recipient = address(uint160(uint256(to)));
+        // 메시지 디코딩 수정
+        (address sender, address recipient, uint256 amount) = abi.decode(
+            _payload,
+            (address, address, uint256)
+        );
 
         // Pool에서 토큰 인출
         pool.withdrawTo(recipient, amount);

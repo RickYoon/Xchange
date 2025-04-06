@@ -2,12 +2,12 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/Ownable2Step.sol";
 
-contract MockEDUToken is ERC20Permit, Ownable {
+contract MockEDUToken is ERC20Permit, Ownable2Step {
     constructor(
         uint256 initialSupply
-    ) ERC20("EDU Token", "EDU") ERC20Permit("EDU Token") Ownable() {
+    ) ERC20("EDU Token", "EDU") ERC20Permit("EDU Token") {
         _mint(msg.sender, initialSupply);
     }
 
